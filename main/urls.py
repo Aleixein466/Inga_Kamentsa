@@ -69,9 +69,9 @@ urlpatterns = [
     #---------
 
     path('', views.index, name='index'), 
-    path('history', views.historia, name='historia'), 
+    path('historia/', views.historia, name='historia'), 
     path('events/schedule', views.cronograma_eventos, name='cronograma_eventos'),
-    path('abouth',views.acerca_de, name='acerca_de'),
+    path('acerca-de',views.acerca_de, name='acerca_de'),
 
     # pdf
 

@@ -197,7 +197,7 @@ class EventoForm(forms.ModelForm):
         self.fields['fecha_inicio'].initial = date.today()
         self.fields['fecha_fin'].initial = date.today()
 
-    def clean_nombres(self):
+    def clean_nombre(self):
         nombre = self.cleaned_data.get('nombre')
         if not nombre:
             raise ValidationError('El campo "Nombre" es obligatorio.')
