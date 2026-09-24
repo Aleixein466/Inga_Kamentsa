@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-selva-50: #eef4ee;
+  --color-selva-100: #d6e7d6;
+  --color-selva-500: #1a3a2a;
+  --color-selva-700: #14301e;
+  --color-selva-900: #0f241a;
+  --color-selva-950: #0a160f;
+  --color-ocre-400: #d4a24e;
+  --color-ocre-500: #c08c2e;
+  --color-ocre-600: #9e7428;
+  --color-arcilla-500: #b0704a;
+  --color-arcilla-700: #7a3f2a;
+  --color-niebla-50: #fdfcf8;
+  --color-niebla-100: #f5f1e8;
+  --color-niebla-200: #ebe5d5;
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-jakarta);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+:root {
+  --background: #fdfcf8;
+  --foreground: #1a3a2a;
+  --card: #ffffff;
+  --card-foreground: #1a3a2a;
+  --muted: #f5f1e8;
+  --muted-foreground: #6b7c6b;
+  --border: #e7e5dd;
+  --primary: #1a3a2a;
+  --primary-foreground: #fdfcf8;
+  --accent: #d4a24e;
+  --accent-foreground: #0f241a;
+}
+
+.dark {
+  --background: #0a160f;
+  --foreground: #f5f1e8;
+  --card: #0f241a;
+  --card-foreground: #f5f1e8;
+  --muted: #14301e;
+  --muted-foreground: #a3b5a3;
+  --border: #1e3a2a;
+  --primary: #d4a24e;
+  --primary-foreground: #0a160f;
+  --accent: #b0704a;
+  --accent-foreground: #fdfcf8;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar selva */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #1a3a2a; border-radius: 8px; }
+.dark ::-webkit-scrollbar-thumb { background: #2a5a3a; }
+
+/* Selection ocre */
+::selection { background: #d4a24e; color: #0f241a; }

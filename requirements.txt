@@ -1,0 +1,16 @@
+# Requirements minimalista — Proyecto migrado a Firebase Firestore (proyecto: inga-kamentsa)
+# Frontend principal: Next.js 15 en web/ (ver web/src/lib/firebase.ts)
+# Django se mantiene solo como legacy opcional sin BD relacional (DATABASES = {} en settings.py)
+# Eliminados: mysqlclient, psycopg2, psycopg2-binary, django-redis, redis, whitenoise (opcional)
+
+# --- Core Django legacy (opcional) ---
+Django>=5.1,<6.0
+Pillow>=10.0
+django-select2>=7.0
+
+# --- Firebase Admin SDK (opcional, solo si se necesita acceso server-side desde Django) ---
+# Descomenta si Django necesita leer/escribir Firestore directamente:
+# firebase-admin>=6.0
+
+# Nota: No se requiere driver relacional (SQLite/Postgres/MySQL deshabilitados).
+# La BD canónica es Firebase Firestore (inga-kamentsa) consumida desde Next.js.
