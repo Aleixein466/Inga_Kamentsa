@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Provider abstraction — Firebase es la BD canónica (inga-kamentsa) — OPCIONAL.
 // Sin firebase instalado o sin env vars, usa mocks. 100% independiente de Django/Python.
+// MySQL: este módulo puede consumir la API Express + Prisma en web/server vía
+// fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/...`) cuando NEXT_PUBLIC_DATA_MODE lo requiera.
+// Ver web/server/README.md y web/server/prisma/schema.prisma (espejo main/models.py).
 
 import { db, isFirebaseConfigured } from "./firebase";
 

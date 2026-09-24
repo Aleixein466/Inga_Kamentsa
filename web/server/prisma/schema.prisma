@@ -1,0 +1,197 @@
+// Prisma schema — espejo de main/models.py (Django legacy) migrado a MySQL
+// Tablas legacy: main_* (compatibilidad). Catálogos Tipo* deprecados en Firestore,
+// pero preservados aquí para migración MySQL solicitada por el usuario (stack MySQL + React).
+// Ver main/models.py:73 y web/FIREBASE_MIGRATION.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Catálogos (DEPRECATED en Firestore, preservados para MySQL) ──
+
+model Zona {
+  id         Int         @id @default(autoincrement())
+  nombre     String      @unique @db.VarChar(45)
+  codigo     String      @unique @db.VarChar(5)
+  localidades Localidad[]
+  usuarios   Usuario[]
+
+  @@map("main_zona")
+}
+
+model Localidad {
+  id     Int    @id @default(autoincrement())
+  zonaId Int    @map("zona_id")
+  zona   Zona   @relation(fields: [zonaId], references: [id], onDelete: Cascade)
+  nombre String @unique @db.VarChar(45)
+  usuarios Usuario[]
+
+  @@index([zonaId])
+  @@map("main_localidad")
+}
+
+model TipoIdentificacion {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique @db.VarChar(45)
+  codigo   String    @unique @db.VarChar(5)
+  usuarios Usuario[]
+
+  @@map("main_tipoidentificacion")
+}
+
+model TipoParentesco {
+  id              Int              @id @default(autoincrement())
+  nombre          String           @unique @db.VarChar(45)
+  codigo          String           @unique @db.VarChar(5)
+  usuarioFamilias UsuarioFamilia[]
+
+  @@map("main_tipoparentesco")
+}
+
+model TipoGenero {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique @db.VarChar(45)
+  codigo   String    @unique @db.VarChar(5)
+  usuarios Usuario[]
+
+  @@map("main_tipogenero")
+}
+
+model TipoEstadoCivil {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique @db.VarChar(45)
+  codigo   String    @unique @db.VarChar(5)
+  usuarios Usuario[]
+
+  @@map("main_tipoestadocivil")
+}
+
+model TipoEscolaridad {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique @db.VarChar(45)
+  codigo   String    @unique @db.VarChar(5)
+  usuarios Usuario[]
+
+  @@map("main_tipoescolaridad")
+}
+
+model TipoProfesion {
+  id       Int       @id @default(autoincrement())
+  nombre   String    @unique @db.VarChar(45)
+  codigo   String    @unique @db.VarChar(5)
+  usuarios Usuario[]
+
+  @@map("main_tipoprofesion")
+}
+
+// ── Auth — espejo django.contrib.auth.models.User (auth_user) ──
+
+model User {
+  id           Int       @id @default(autoincrement())
+  password     String    @db.VarChar(128)
+  lastLogin    DateTime? @map("last_login") @db.DateTime(6)
+  isSuperuser  Boolean   @default(false) @map("is_superuser")
+  username     String    @unique @db.VarChar(150)
+  firstName    String    @default("") @map("first_name") @db.VarChar(150)
+  lastName     String    @default("") @map("last_name") @db.VarChar(150)
+  email        String    @default("") @db.VarChar(254)
+  isStaff      Boolean   @default(false) @map("is_staff")
+  isActive     Boolean   @default(true) @map("is_active")
+  dateJoined   DateTime  @default(now()) @map("date_joined") @db.DateTime(6)
+  usuario      Usuario?
+
+  @@map("auth_user")
+}
+
+// ── Dominio principal ──
+
+model Usuario {
+  id                Int                 @id @default(autoincrement())
+  userId            Int                 @unique @map("user_id")
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nombres           String              @db.VarChar(45)
+  apellidos         String              @db.VarChar(45)
+  nDocumento        String              @unique @map("n_documento") @db.VarChar(10)
+  fechaNacimiento   DateTime            @map("fecha_nacimiento") @db.Date
+  zonaId            Int                 @map("zona_id")
+  zona              Zona                @relation(fields: [zonaId], references: [id], onDelete: Cascade)
+  localidadId       Int                 @map("localidad_id")
+  localidad         Localidad           @relation(fields: [localidadId], references: [id], onDelete: Cascade)
+  direccion         String?             @db.VarChar(45)
+  telefono          String?             @db.VarChar(10)
+  identificacionId  Int                 @map("identificacion_id")
+  identificacion    TipoIdentificacion  @relation(fields: [identificacionId], references: [id], onDelete: Cascade)
+  generoId          Int                 @map("genero_id")
+  genero            TipoGenero          @relation(fields: [generoId], references: [id], onDelete: Cascade)
+  estadoCivilId     Int?                @map("estadoCivil_id")
+  estadoCivil       TipoEstadoCivil?    @relation(fields: [estadoCivilId], references: [id], onDelete: Cascade)
+  escolaridadId     Int?                @map("escolaridad_id")
+  escolaridad       TipoEscolaridad?    @relation(fields: [escolaridadId], references: [id], onDelete: Cascade)
+  profesionId       Int?                @map("profesion_id")
+  profesion         TipoProfesion?      @relation(fields: [profesionId], references: [id], onDelete: Cascade)
+
+  familias UsuarioFamilia[]
+  eventos  UsuarioEvento[]
+
+  @@index([zonaId])
+  @@index([localidadId])
+  @@index([identificacionId])
+  @@index([generoId])
+  @@map("main_usuario")
+}
+
+model Familia {
+  id        Int              @id @default(autoincrement())
+  nFamilia  String           @unique @map("n_familia") @db.VarChar(45)
+  miembros  UsuarioFamilia[]
+
+  @@map("main_familia")
+}
+
+model UsuarioFamilia {
+  id          Int            @id @default(autoincrement())
+  usuarioId   Int            @map("usuario_id")
+  usuario     Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  familiaId   Int            @map("familia_id")
+  familia     Familia        @relation(fields: [familiaId], references: [id], onDelete: Cascade)
+  parentescoId Int           @map("parentesco_id")
+  parentesco  TipoParentesco @relation(fields: [parentescoId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([familiaId])
+  @@index([parentescoId])
+  @@map("main_usuariofamilia")
+}
+
+model Evento {
+  id          Int             @id @default(autoincrement())
+  nombre      String          @db.VarChar(45)
+  descripcion String?         @db.Text
+  imagen      String?         @db.VarChar(255)
+  fechaInicio DateTime        @map("fecha_inicio") @db.Date
+  fechaFin    DateTime        @map("fecha_fin") @db.Date
+  esFavorito  Boolean         @default(false) @map("es_favorito")
+  asistencias UsuarioEvento[]
+
+  @@map("main_evento")
+}
+
+model UsuarioEvento {
+  id               Int      @id @default(autoincrement())
+  usuarioId        Int      @map("usuario_id")
+  usuario          Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  eventoId         Int      @map("evento_id")
+  evento           Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  fechaAsistencia  DateTime @map("fecha_asistencia") @db.Date
+  asistencia       Boolean  @default(false)
+
+  @@unique([usuarioId, eventoId, fechaAsistencia])
+  @@index([usuarioId])
+  @@index([eventoId])
+  @@map("main_usuarioevento")
+}
