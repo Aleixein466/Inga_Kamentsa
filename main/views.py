@@ -129,18 +129,11 @@ def listar_usuarios(request):
 def crear_usuario(request):    
     if request.method == 'POST':
         form = UsuarioForm(request.POST)
-        
-        # Imprimir los datos que se están intentando guardar
-        print("Datos del formulario:", request.POST)
 
         if form.is_valid():
             try:
                 usuario = form.save(commit=False)
                 n_documento = form.cleaned_data['n_documento']
-                
-                # Imprimir los datos que se guardarán
-                print("Datos validados para guardar:", usuario)
-                print("Número de documento:", n_documento)
                 
                 user, created = User.objects.get_or_create(
                     username=n_documento,
@@ -170,12 +163,8 @@ def crear_usuario(request):
             
             except Exception as e:
                 messages.warning(request, f'Ocurrió un error inesperado al crear el usuario: {str(e)}')
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        print(f'Error en {field}: {error}')
         else:
             messages.warning(request, 'Hay errores en el formulario. Por favor corrige los campos indicados.')
-            print("Errores del formulario:", form.errors)  # Imprimir los errores si el formulario no es válido
     else:
         form = UsuarioForm()
     
@@ -208,7 +197,7 @@ def eliminar_usuario(request, pk):
         user.delete()
         messages.success(request, 'El usuario se ha eliminado correctamente.')
     except Exception as e:
-        print(f"Error al eliminar el usuario: {e}")
+        messages.warning(request, f"Error al eliminar el usuario: {e}")
 
     usuario.delete()
     return redirect('listar_usuarios')
@@ -441,42 +430,38 @@ def eliminar_usuario_evento(request, pk):
 
     return redirect('listar_asistencias_usuario', usuario_id=usuario_id)
 
-@login_required
-@user_passes_test(lambda u: u.groups.filter(name='Admin').exists())
-def listar_usuarios_por_evento(request, evento_id):
-    evento = get_object_or_404(Evento, pk=evento_id)
-    
-    # Calcular las fechas del evento
+def _agrupar_asistencias(evento):
+    """Helper factorizado (P1/P2): agrupa asistencias por usuario para un evento.
+    Retorna (fechas_evento: list[str], asistencias_por_usuario: dict).
+    Evita duplicación entre listar_usuarios_por_evento y generar_pdf_asistencias_evento.
+    """
     duracion_dias = (evento.fecha_fin - evento.fecha_inicio).days + 1
     fechas_evento = [(evento.fecha_inicio + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(duracion_dias)]
-
-    # Obtener todas las asistencias del evento
     usuarios_eventos = UsuarioEvento.objects.filter(evento=evento).select_related('usuario')
-
-    # Agrupar asistencias por usuario
     asistencias_por_usuario = {}
     for usuario_evento in usuarios_eventos:
         usuario = usuario_evento.usuario
         if usuario not in asistencias_por_usuario:
-            # Inicializamos con todas las fechas en 'No Asistió'
             asistencias_por_usuario[usuario] = {'asistencias': [False] * len(fechas_evento), 'faltas': 0}
-        
-        # Marcamos las asistencias reales
         fecha_asistencia_str = usuario_evento.fecha_asistencia.strftime('%Y-%m-%d')
         if fecha_asistencia_str in fechas_evento:
             index = fechas_evento.index(fecha_asistencia_str)
-            asistencias_por_usuario[usuario]['asistencias'][index] = usuario_evento.asistencia  # True si asistió, False si no
-    
-    # Contamos las veces que faltó cada usuario
+            asistencias_por_usuario[usuario]['asistencias'][index] = usuario_evento.asistencia
     for usuario, data in asistencias_por_usuario.items():
-        data['faltas'] = data['asistencias'].count(False)  # Cuenta los 'False' en la lista de asistencias
+        data['faltas'] = data['asistencias'].count(False)
+    return fechas_evento, asistencias_por_usuario
 
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(name='Admin').exists())
+def listar_usuarios_por_evento(request, evento_id):
+    evento = get_object_or_404(Evento, pk=evento_id)
+    fechas_evento, asistencias_por_usuario = _agrupar_asistencias(evento)
     context = {
         'evento': evento,
-        'asistencias_por_usuario': asistencias_por_usuario.items(),  # Pasamos como items para iterar
+        'asistencias_por_usuario': asistencias_por_usuario.items(),
         'fechas_evento': fechas_evento,
     }
-
     return render(request, 'eventos/asistencias/listar_filtro.html', context)
 
 @login_required
@@ -491,39 +476,28 @@ def registrar_usuario_a_evento(request, evento_id=None):
             usuario = usuario_evento.usuario
             duracion_evento = evento.duracion_dias
 
-            print(f"Duración del evento: {duracion_evento} días")
-            
             registros = []
-            registros_existentes = 0  # Contador de registros existentes
+            registros_existentes = 0
 
             for dia in range(duracion_evento):
                 fecha_asistencia = evento.fecha_inicio + timedelta(days=dia)
-                print(f"Verificando asistencia para el día: {fecha_asistencia}")
-
-                # Revisar si ya existe el registro
                 if not UsuarioEvento.objects.filter(usuario=usuario, evento=evento, fecha_asistencia=fecha_asistencia).exists():
-                    print(f"Añadiendo registro para el día {fecha_asistencia}")
                     registros.append(UsuarioEvento(
                         usuario=usuario,
                         evento=evento,
                         fecha_asistencia=fecha_asistencia,
-                        asistencia=False  # Inicialmente sin asistencia
+                        asistencia=False
                     ))
                 else:
-                    registros_existentes += 1  # Contamos cuántos registros ya existen
+                    registros_existentes += 1
 
-            # Si hay registros nuevos, los creamos
             if registros:
-                print(f"Creando {len(registros)} registros nuevos...")
                 UsuarioEvento.objects.bulk_create(registros)
-                print(f"Asistencias nuevas registradas con éxito.")
                 messages.success(request, f'Las Asistencias para el Usuario se han creado con éxito.')
 
-            else:
-                print(f"El usuario ya estaba registrado en todas las fechas del evento. Registros existentes: {registros_existentes}.")
             return redirect('listar_eventos')
         else:
-            print("Formulario no válido, errores:", form.errors)
+            messages.warning(request, 'Formulario no válido.')
     else:
         form = UsuarioEventoForm(initial={'evento': evento})
         form.fields['evento'].widget = forms.HiddenInput()
@@ -597,9 +571,8 @@ def signin(request):
         else:
             return redirect('index')  # Redirigir si no tiene grupo
 
-# cerrar sesion
+# cerrar sesion — sin @login_required para permitir logout aun si sesión expirada
 
-@login_required
 def signout(request):
     logout(request)
     return redirect('index')
@@ -652,32 +625,7 @@ def generar_pdf_usuarios(request):
 
 def generar_pdf_asistencias_evento(request, evento_id):
     evento = get_object_or_404(Evento, pk=evento_id)
-    
-    # Obtener todas las asistencias para el evento específico
-    usuarios_eventos = UsuarioEvento.objects.filter(evento=evento).select_related('usuario')
-
-    # Calcular las fechas del evento
-    duracion_dias = (evento.fecha_fin - evento.fecha_inicio).days + 1
-    fechas_evento = [(evento.fecha_inicio + timedelta(days=i)).strftime('%Y-%m-%d') for i in range(duracion_dias)]
-
-    # Agrupar asistencias por usuario
-    asistencias_por_usuario = {}
-    for usuario_evento in usuarios_eventos:
-        usuario = usuario_evento.usuario
-        if usuario not in asistencias_por_usuario:
-            # Inicializamos con todas las fechas en 'No Asistió'
-            asistencias_por_usuario[usuario] = {'asistencias': [False] * len(fechas_evento), 'faltas': 0}
-        
-        # Marcamos las asistencias reales
-        fecha_asistencia_str = usuario_evento.fecha_asistencia.strftime('%Y-%m-%d')
-        if fecha_asistencia_str in fechas_evento:
-            index = fechas_evento.index(fecha_asistencia_str)
-            asistencias_por_usuario[usuario]['asistencias'][index] = usuario_evento.asistencia  # True si asistió, False si no
-    
-    # Contamos las veces que faltó cada usuario
-    for usuario, data in asistencias_por_usuario.items():
-        data['faltas'] = data['asistencias'].count(False)  # Cuenta los 'False' en la lista de asistencias
-
+    fechas_evento, asistencias_por_usuario = _agrupar_asistencias(evento)
     context = {
         'evento': evento,
         'asistencias_por_usuario': asistencias_por_usuario.items(),

@@ -1,152 +1,67 @@
-# Proyecto Cabildo
+# Resguardo Inga Kamëntsá de Mocoa
 
-## Introducción
+Plataforma canónica **Next.js 15 + Firestore (`inga-kamentsa`)** en `web/` y plantilla **Django legacy** en `main/` (CRUD admin, PDFs). Migración documentada en `web/FIREBASE_MIGRATION.md`.
 
-El proyecto **Cabildo** es una aplicación web desarrollada en **Django** que permite la gestión eficiente de eventos y usuarios. Esta aplicación ofrece una interfaz de usuario intuitiva basada en plantillas HTML, facilitando la administración de eventos y la autenticación de usuarios. Además, incluye la funcionalidad de generación y descarga de informes en formato PDF utilizando la biblioteca **WeasyPrint**.
+## Estructura
 
-## Tecnologías Utilizadas
+```
+Pagina_Web_Inga_Kamentsa/
+├── web/                  # CANÓNICO — Next.js 15 (Tailwind v4, Framer Motion, Firebase)
+│   ├── src/lib/firebase.ts
+│   ├── src/lib/providers.ts
+│   ├── src/lib/design-system.ts   # canónico (no tocar)
+│   ├── src/app/globals.css        # canónico (no tocar)
+│   └── public/img/eventos/        # imágenes migradas desde media/eventos/
+├── main/                 # Django legacy plantilla (DATABASES={} por defecto)
+│   ├── models.py         # 8 Tipo* DEPRECATED → Firestore catalogos/{tipo}
+│   ├── views.py          # helper _agrupar_asistencias factorizado
+│   ├── templates/bases/base.html          # canónico moderno
+│   ├── templates/bases/landing/base.html  # wrapper extends base.html + extra_css landing.css
+│   ├── static/img/inti_rayni/  (antes "inti rayni" con espacio) + pawakur_rayni
+│   └── admin.py          # Evento/Familia registrados
+├── media/eventos/.gitkeep  # originales copiados a web/public/img/eventos/
+├── CabildoGranPutumayo/settings.py  # Django legacy, DB vacía; descomenta SQLite si necesitas admin
+└── requirements.txt      # Django + Pillow + django-select2 (+ firebase-admin opcional)
+```
 
-- **Python**
-- **Django**
-- **MySQL**
+## Tecnologías
+
+- **Web canónico:** Next.js 15, React 19, Tailwind v4, Framer Motion, Firebase 11 (Firestore/Auth/Storage)
+- **Legacy:** Python 3.11, Django 4/5, Pillow, WeasyPrint (opcional, fallback HTML si falta GTK/Pango)
 
 ## Instalación
 
-### Pasos de Instalación
-
-Sigue los siguientes pasos para instalar y configurar el proyecto:
-
-1. **Clona el repositorio**
-
-   Abre tu terminal y ejecuta los siguientes comandos:
-
-   ```bash
-   cd cabildo_django
-   ```
-
-2. **Crea y activa un entorno virtual**
-
-   Crea un entorno virtual y actívalo con los siguientes comandos:
-
-   ```bash
-   python -m venv env
-   env\Scripts\activate
-   ```
-
-   - **¿Error al activar el entorno virtual?**
-
-     Si experimentas un error al intentar activar el entorno virtual, abre PowerShell como administrador y ejecuta:
-
-     ```bash
-     Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-     ```
-
-     Luego, cierra PowerShell.
-
-3. **Instala las dependencias**
-
-   Instala todas las dependencias necesarias listadas en el archivo `requirements.txt` ejecutando:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Instala WeasyPrint en Windows**
-
-   Para utilizar WeasyPrint en Windows, es necesario instalar algunas dependencias adicionales. Sigue estos pasos:
-
-   - **Instala Pango y GTK** utilizando [MSYS2](https://www.msys2.org/). Descarga el instalador y sigue las instrucciones de instalación.
-   - Después de la instalación, abre `MSYS2 UCRT64` e ingresa los siguientes comandos:
-
-     ```bash
-     pacman -S mingw-w64-x86_64-pango
-     pacman -S mingw-w64-x86_64-gtk4
-     ```
-
-     Si deseas desarrollar con GTK3, también puedes ejecutar:
-
-     ```bash
-     pacman -S mingw-w64-ucrt-x86_64-gtk3
-     ```
-
-   - Agrega el directorio `bin` de GTK a tu variable de entorno `PATH` siguiendo estos pasos:
-
-     1. Abre el cuadro de diálogo Ejecutar presionando `Win + R`.
-     2. Escribe el siguiente comando y presiona Enter:
-
-        ```bash
-        sysdm.cpl
-        ```
-
-     3. En la ventana de Propiedades del sistema, ve a la pestaña `Opciones avanzadas`.
-     4. Haz clic en el botón `Variables de entorno`.
-     5. En `Variables del sistema`, selecciona `Path` y haz clic en `Editar`.
-     6. Agrega la ruta al directorio `bin` de GTK:
-
-        ```bash
-        C:\msys64\ucrt64\bin
-        ```
-
-5. **Configura la base de datos**
-
-   Asegúrate de configurar correctamente tu base de datos en el archivo `settings.py`.
-
-6. **Aplica las migraciones**
-
-   Ejecuta los siguientes comandos para aplicar las migraciones:
-
-   ```bash
-   python manage.py makemigrations 
-   python manage.py migrate
-   ```
-
-7. **Inicia el servidor de desarrollo**
-
-   Para iniciar el servidor de desarrollo, utiliza el siguiente comando:
-
-   ```bash
-   python manage.py runserver
-   ```
-
-## Estructura del Proyecto
-
-La estructura del proyecto es la siguiente:
-
+### Web (recomendado)
 ```bash
-proyecto_cabildo/
-├── .gitignore
-├── env
-└── media
-│   └── eventos
-│       └── eventos.jpg
-├── CabildoGranPutumayo/
-│   ├── __pycache__
-│   ├── __init__.py
-│   ├── asgi.py
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-└── main/
-    ├── __pycache__
-    ├── migrations/
-    ├── static/
-    │   └── img/
-    ├── templates/
-    │   ├── bases/
-    │   │   └── etc.html
-    │   ├── eventos/
-    │   │   └── etc.html
-    │   ├── login/
-    │   │   └── etc.html
-    │   └── usuarios/
-    │       └── etc.html
-    ├── __init__.py
-    ├── admin.py
-    ├── apps.py
-    ├── context_processors/
-    ├── forms/
-    ├── models.py
-    ├── tests.py
-    ├── url.py
-    └── views.py
+cd web
+npm install
+cp .env.example .env.local   # completar config Firebase Console > Project Settings > SDK
+npm run dev                  # http://localhost:3000
+npm run build
 ```
+Crear colecciones Firestore según `web/FIREBASE_MIGRATION.md`: `eventos`, `familias`, `catalogos/{tipo}`.
+
+### Django legacy (solo plantilla/admin)
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+# Habilitar DB legacy si lo necesitas: descomenta bloque SQLite en CabildoGranPutumayo/settings.py:95
+python manage.py migrate
+python manage.py runserver
+```
+`env/` está en `.gitignore` (eliminado del repo). `__pycache__/` ignorado.
+
+## Migración y auditoría P1/P2
+
+- `inti rayni` → `inti_rayni`, `pawakur` → `pawakur_rayni` (sin espacios)
+- `media/eventos/` (14 archivos) copiados a `web/public/img/eventos/`, se deja `.gitkeep`
+- `bases/base.html` canónico moderno con `{% block extra_css %}` / `extra_js` / `modals` / `footer`; `bases/landing/base.html` es wrapper que extiende base (elimina duplicación Bootstrap/jQuery/DataTables)
+- `bases/card.html` canónico, `login/bases/cardLogin.html` documentado como duplicado legacy con video background
+- `main/models.py`: 8 Tipo* marcados `# DEPRECATED: migrado a Firestore catalogos` + docstring cabecera
+- `main/views.py`: helper `_agrupar_asistencias(evento)` factoriza `listar_usuarios_por_evento` y `generar_pdf_asistencias_evento`; prints debug eliminados; `signout` sin `@login_required`
+- `main/admin.py` registra `Evento`, `Familia`, `Usuario`, `UsuarioEvento`, `UsuarioFamilia`
+- `main/templates/bases/landing/otros/historia.html` reescrita: 448 líneas Pastos/Waka → versión Inga-Kamëntsá concisa (Valle Sibundoy, Yagé, chumbe, lengua Inga, Bëtsknaté)
+- `web/src/lib/design-system.ts` y `web/src/app/globals.css` son canónicos — no modificar
+```
+

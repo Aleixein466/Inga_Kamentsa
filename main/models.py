@@ -1,9 +1,25 @@
-# models.py
+# models.py — Django legacy plantilla (canónico: web/ Firestore inga-kamentsa)
+"""
+NOTA MIGRACIÓN FIRESTORE (P1/P2 auditoría):
+
+  Los 8 modelos catálogo Tipo* están DEPRECADOS y migrados a Firestore:
+    catalogos/{tipo}/{id}  (ver web/FIREBASE_MIGRATION.md)
+
+    - Zona, Localidad, TipoIdentificacion, TipoParentesco,
+      TipoGenero, TipoEstadoCivil, TipoEscolaridad, TipoProfesion
+
+  Se mantienen en este archivo SOLO para no romper migraciones históricas
+  y compatibilidad con admin legacy. Nuevo desarrollo debe leer/escribir
+  desde Firestore web/src/lib/firebase.ts  (colección `catalogos`).
+
+  Modelos vigentes legacy: Usuario, Familia, UsuarioFamilia, Evento, UsuarioEvento.
+"""
 
 from datetime import date
 from django.db import models
 from django.contrib.auth.models import User
 
+# DEPRECATED: migrado a Firestore catalogos/zona — ver web/FIREBASE_MIGRATION.md
 # Modelo Zona
 class Zona(models.Model):
     nombre = models.CharField(max_length=45, unique=True)
@@ -12,6 +28,7 @@ class Zona(models.Model):
     def __str__(self):
         return f"{self.nombre}"
 
+# DEPRECATED: migrado a Firestore catalogos/localidad — ver web/FIREBASE_MIGRATION.md
 # Modelo Localidad
 class Localidad(models.Model):
     zona = models.ForeignKey(Zona, on_delete=models.CASCADE, related_name='localidades')  # Añadido related_name
@@ -20,6 +37,7 @@ class Localidad(models.Model):
     def __str__(self):
         return f"{self.nombre}"
 
+# DEPRECATED: migrado a Firestore catalogos/tipo_identificacion — ver web/FIREBASE_MIGRATION.md
 # Modelo TipoIdentificacion
 class TipoIdentificacion(models.Model):
     nombre = models.CharField(max_length=45, unique=True)
@@ -28,6 +46,7 @@ class TipoIdentificacion(models.Model):
     def __str__(self):
         return f"{self.nombre}"
 
+# DEPRECATED: migrado a Firestore catalogos/tipo_parentesco — ver web/FIREBASE_MIGRATION.md
 # Modelo TipoParentesco
 class TipoParentesco(models.Model):
     nombre = models.CharField(max_length=45, unique=True)
@@ -36,6 +55,7 @@ class TipoParentesco(models.Model):
     def __str__(self):
         return f"{self.nombre}"
 
+# DEPRECATED: migrado a Firestore catalogos/tipo_genero — ver web/FIREBASE_MIGRATION.md
 # Modelo TipoGenero
 class TipoGenero(models.Model):
     nombre = models.CharField(max_length=45, unique=True)
@@ -44,6 +64,7 @@ class TipoGenero(models.Model):
     def __str__(self):
         return f"{self.nombre}"
 
+# DEPRECATED: migrado a Firestore catalogos/tipo_estado_civil — ver web/FIREBASE_MIGRATION.md
 # Modelo TipoEstadoCivil
 class TipoEstadoCivil(models.Model):
     nombre = models.CharField(max_length=45, unique=True)
@@ -52,6 +73,7 @@ class TipoEstadoCivil(models.Model):
     def __str__(self):
         return f"{self.nombre}"
 
+# DEPRECATED: migrado a Firestore catalogos/tipo_escolaridad — ver web/FIREBASE_MIGRATION.md
 # Modelo TipoEscolaridad
 class TipoEscolaridad(models.Model):
     nombre = models.CharField(max_length=45, unique=True)
@@ -60,6 +82,7 @@ class TipoEscolaridad(models.Model):
     def __str__(self):
         return f"{self.nombre}"
 
+# DEPRECATED: migrado a Firestore catalogos/tipo_profesion — ver web/FIREBASE_MIGRATION.md
 # Modelo TipoProfesion
 class TipoProfesion(models.Model):
     nombre = models.CharField(max_length=45, unique=True)
